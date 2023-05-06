@@ -1,0 +1,990 @@
+diff --git a/dist/index.js b/dist/index.js
+index e6898dee3d5aa192488afe4b3459935ec71c1354..87ebb7eab831f5756c3fb6d29d6758a2c6e4bf63 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -1,8 +1,8 @@
+-import { join, dirname } from 'pathe';
+-import { plugins, format } from 'pretty-format';
+-import 'util';
++import { join, dirname } from "pathe";
++import format, { plugins } from "pretty-format";
++import "util";
+ 
+-var naturalCompare$1 = {exports: {}};
++var naturalCompare$1 = { exports: {} };
+ 
+ /*
+  * @version    1.4.0
+@@ -12,58 +12,70 @@ var naturalCompare$1 = {exports: {}};
+  * @license    MIT License
+  */
+ 
++var naturalCompare = function (a, b) {
++  var i,
++    codeA,
++    codeB = 1,
++    posA = 0,
++    posB = 0,
++    alphabet = String.alphabet;
+ 
+-var naturalCompare = function(a, b) {
+-	var i, codeA
+-	, codeB = 1
+-	, posA = 0
+-	, posB = 0
+-	, alphabet = String.alphabet;
+-
+-	function getCode(str, pos, code) {
+-		if (code) {
+-			for (i = pos; code = getCode(str, i), code < 76 && code > 65;) ++i;
+-			return +str.slice(pos - 1, i)
+-		}
+-		code = alphabet && alphabet.indexOf(str.charAt(pos));
+-		return code > -1 ? code + 76 : ((code = str.charCodeAt(pos) || 0), code < 45 || code > 127) ? code
+-			: code < 46 ? 65               // -
+-			: code < 48 ? code - 1
+-			: code < 58 ? code + 18        // 0-9
+-			: code < 65 ? code - 11
+-			: code < 91 ? code + 11        // A-Z
+-			: code < 97 ? code - 37
+-			: code < 123 ? code + 5        // a-z
+-			: code - 63
+-	}
+-
++  function getCode(str, pos, code) {
++    if (code) {
++      for (i = pos; (code = getCode(str, i)), code < 76 && code > 65; ) ++i;
++      return +str.slice(pos - 1, i);
++    }
++    code = alphabet && alphabet.indexOf(str.charAt(pos));
++    return code > -1
++      ? code + 76
++      : ((code = str.charCodeAt(pos) || 0), code < 45 || code > 127)
++      ? code
++      : code < 46
++      ? 65 // -
++      : code < 48
++      ? code - 1
++      : code < 58
++      ? code + 18 // 0-9
++      : code < 65
++      ? code - 11
++      : code < 91
++      ? code + 11 // A-Z
++      : code < 97
++      ? code - 37
++      : code < 123
++      ? code + 5 // a-z
++      : code - 63;
++  }
+ 
+-	if ((a+="") != (b+="")) for (;codeB;) {
+-		codeA = getCode(a, posA++);
+-		codeB = getCode(b, posB++);
++  if ((a += "") != (b += ""))
++    for (; codeB; ) {
++      codeA = getCode(a, posA++);
++      codeB = getCode(b, posB++);
+ 
+-		if (codeA < 76 && codeB < 76 && codeA > 66 && codeB > 66) {
+-			codeA = getCode(a, posA, posA);
+-			codeB = getCode(b, posB, posA = i);
+-			posB = i;
+-		}
++      if (codeA < 76 && codeB < 76 && codeA > 66 && codeB > 66) {
++        codeA = getCode(a, posA, posA);
++        codeB = getCode(b, posB, (posA = i));
++        posB = i;
++      }
+ 
+-		if (codeA != codeB) return (codeA < codeB) ? -1 : 1
+-	}
+-	return 0
++      if (codeA != codeB) return codeA < codeB ? -1 : 1;
++    }
++  return 0;
+ };
+ 
+ try {
+-	naturalCompare$1.exports = naturalCompare;
++  naturalCompare$1.exports = naturalCompare;
+ } catch (e) {
+-	String.naturalCompare = naturalCompare;
++  String.naturalCompare = naturalCompare;
+ }
+ 
+ function notNullish(v) {
+   return v != null;
+ }
+ function isPrimitive(value) {
+-  return value === null || typeof value !== "function" && typeof value !== "object";
++  return (
++    value === null || (typeof value !== "function" && typeof value !== "object")
++  );
+ }
+ function isObject(item) {
+   return item != null && typeof item === "object" && !Array.isArray(item);
+@@ -80,16 +92,12 @@ function getCallLastIndex(code) {
+     const char = code[charIndex];
+     const isCharString = char === '"' || char === "'" || char === "`";
+     if (isCharString && beforeChar !== "\\") {
+-      if (inString === char)
+-        inString = null;
+-      else if (!inString)
+-        inString = char;
++      if (inString === char) inString = null;
++      else if (!inString) inString = char;
+     }
+     if (!inString) {
+-      if (char === "(")
+-        startedBracers++;
+-      if (char === ")")
+-        endedBracers++;
++      if (char === "(") startedBracers++;
++      if (char === ")") endedBracers++;
+     }
+     if (startedBracers && endedBracers && startedBracers === endedBracers)
+       return charIndex;
+@@ -97,16 +105,19 @@ function getCallLastIndex(code) {
+   return null;
+ }
+ 
+-let getPromiseValue = () => 'Promise{…}';
++let getPromiseValue = () => "Promise{…}";
+ try {
+-  const { getPromiseDetails, kPending, kRejected } = process.binding('util');
++  const { getPromiseDetails, kPending, kRejected } = process.binding("util");
+   if (Array.isArray(getPromiseDetails(Promise.resolve()))) {
+     getPromiseValue = (value, options) => {
+       const [state, innerValue] = getPromiseDetails(value);
+       if (state === kPending) {
+-        return 'Promise{<pending>}'
++        return "Promise{<pending>}";
+       }
+-      return `Promise${state === kRejected ? '!' : ''}{${options.inspect(innerValue, options)}}`
++      return `Promise${state === kRejected ? "!" : ""}{${options.inspect(
++        innerValue,
++        options
++      )}}`;
+     };
+   }
+ } catch (notNode) {
+@@ -121,7 +132,7 @@ try {
+ let nodeInspect = false;
+ try {
+   // eslint-disable-next-line global-require
+-  const nodeUtil = require('util');
++  const nodeUtil = require("util");
+   nodeInspect = nodeUtil.inspect ? nodeUtil.inspect.custom : false;
+ } catch (noNodeInspect) {
+   nodeInspect = false;
+@@ -140,11 +151,15 @@ function cwd() {
+   }
+   return "/";
+ }
+-const resolve = function(...arguments_) {
++const resolve = function (...arguments_) {
+   arguments_ = arguments_.map((argument) => normalizeWindowsPath(argument));
+   let resolvedPath = "";
+   let resolvedAbsolute = false;
+-  for (let index = arguments_.length - 1; index >= -1 && !resolvedAbsolute; index--) {
++  for (
++    let index = arguments_.length - 1;
++    index >= -1 && !resolvedAbsolute;
++    index--
++  ) {
+     const path = index >= 0 ? arguments_[index] : cwd();
+     if (!path || path.length === 0) {
+       continue;
+@@ -173,10 +188,14 @@ function normalizeString(path, allowAboveRoot) {
+       char = "/";
+     }
+     if (char === "/") {
+-      if (lastSlash === index - 1 || dots === 1)
+-        ;
++      if (lastSlash === index - 1 || dots === 1);
+       else if (dots === 2) {
+-        if (res.length < 2 || lastSegmentLength !== 2 || res[res.length - 1] !== "." || res[res.length - 2] !== ".") {
++        if (
++          res.length < 2 ||
++          lastSegmentLength !== 2 ||
++          res[res.length - 1] !== "." ||
++          res[res.length - 2] !== "."
++        ) {
+           if (res.length > 2) {
+             const lastSlashIndex = res.lastIndexOf("/");
+             if (lastSlashIndex === -1) {
+@@ -219,7 +238,7 @@ function normalizeString(path, allowAboveRoot) {
+   }
+   return res;
+ }
+-const isAbsolute = function(p) {
++const isAbsolute = function (p) {
+   return _IS_ABSOLUTE_RE.test(p);
+ };
+ const lineSplitRE = /\r?\n/;
+@@ -233,55 +252,63 @@ const stackIgnorePatterns = [
+   "/vite-node/src/",
+   "/node_modules/chai/",
+   "/node_modules/tinypool/",
+-  "/node_modules/tinyspy/"
++  "/node_modules/tinyspy/",
+ ];
+ function extractLocation(urlLike) {
+-  if (!urlLike.includes(":"))
+-    return [urlLike];
++  if (!urlLike.includes(":")) return [urlLike];
+   const regExp = /(.+?)(?::(\d+))?(?::(\d+))?$/;
+   const parts = regExp.exec(urlLike.replace(/[()]/g, ""));
+-  if (!parts)
+-    return [urlLike];
++  if (!parts) return [urlLike];
+   return [parts[1], parts[2] || void 0, parts[3] || void 0];
+ }
+ function parseSingleStack(raw) {
+   let line = raw.trim();
+   if (line.includes("(eval "))
+-    line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^()]*)|(,.*$)/g, "");
+-  let sanitizedLine = line.replace(/^\s+/, "").replace(/\(eval code/g, "(").replace(/^.*?\s+/, "");
++    line = line
++      .replace(/eval code/g, "eval")
++      .replace(/(\(eval at [^()]*)|(,.*$)/g, "");
++  let sanitizedLine = line
++    .replace(/^\s+/, "")
++    .replace(/\(eval code/g, "(")
++    .replace(/^.*?\s+/, "");
+   const location = sanitizedLine.match(/ (\(.+\)$)/);
+-  sanitizedLine = location ? sanitizedLine.replace(location[0], "") : sanitizedLine;
+-  const [url, lineNumber, columnNumber] = extractLocation(location ? location[1] : sanitizedLine);
+-  let method = location && sanitizedLine || "";
++  sanitizedLine = location
++    ? sanitizedLine.replace(location[0], "")
++    : sanitizedLine;
++  const [url, lineNumber, columnNumber] = extractLocation(
++    location ? location[1] : sanitizedLine
++  );
++  let method = (location && sanitizedLine) || "";
+   let file = url && ["eval", "<anonymous>"].includes(url) ? void 0 : url;
+-  if (!file || !lineNumber || !columnNumber)
+-    return null;
+-  if (method.startsWith("async "))
+-    method = method.slice(6);
+-  if (file.startsWith("file://"))
+-    file = file.slice(7);
++  if (!file || !lineNumber || !columnNumber) return null;
++  if (method.startsWith("async ")) method = method.slice(6);
++  if (file.startsWith("file://")) file = file.slice(7);
+   file = resolve(file);
+   return {
+     method,
+     file,
+     line: parseInt(lineNumber),
+-    column: parseInt(columnNumber)
++    column: parseInt(columnNumber),
+   };
+ }
+ function parseStacktrace(stack, ignore = stackIgnorePatterns) {
+-  const stackFrames = stack.split("\n").map((raw) => {
+-    const stack2 = parseSingleStack(raw);
+-    if (!stack2 || ignore.length && ignore.some((p) => stack2.file.match(p)))
+-      return null;
+-    return stack2;
+-  }).filter(notNullish);
++  const stackFrames = stack
++    .split("\n")
++    .map((raw) => {
++      const stack2 = parseSingleStack(raw);
++      if (
++        !stack2 ||
++        (ignore.length && ignore.some((p) => stack2.file.match(p)))
++      )
++        return null;
++      return stack2;
++    })
++    .filter(notNullish);
+   return stackFrames;
+ }
+ function parseErrorStacktrace(e, ignore = stackIgnorePatterns) {
+-  if (!e || isPrimitive(e))
+-    return [];
+-  if (e.stacks)
+-    return e.stacks;
++  if (!e || isPrimitive(e)) return [];
++  if (e.stacks) return e.stacks;
+   const stackStr = e.stack || e.stackStr || "";
+   const stackFrames = parseStacktrace(stackStr, ignore);
+   e.stacks = stackFrames;
+@@ -291,10 +318,8 @@ function positionToOffset(source, lineNumber, columnNumber) {
+   const lines = source.split(lineSplitRE);
+   const nl = /\r\n/.test(source) ? 2 : 1;
+   let start = 0;
+-  if (lineNumber > lines.length)
+-    return source.length;
+-  for (let i = 0; i < lineNumber - 1; i++)
+-    start += lines[i].length + nl;
++  if (lineNumber > lines.length) return source.length;
++  for (let i = 0; i < lineNumber - 1; i++) start += lines[i].length + nl;
+   return start + columnNumber;
+ }
+ function offsetToLineNumber(source, offset) {
+@@ -309,8 +334,7 @@ function offsetToLineNumber(source, offset) {
+   let line = 0;
+   for (; line < lines.length; line++) {
+     const lineLength = lines[line].length + nl;
+-    if (counted + lineLength >= offset)
+-      break;
++    if (counted + lineLength >= offset) break;
+     counted += lineLength;
+   }
+   return line + 1;
+@@ -322,7 +346,21 @@ const serialize$1 = (val, config, indentation, depth, refs, printer) => {
+   let callsString = "";
+   if (val.mock.calls.length !== 0) {
+     const indentationNext = indentation + config.indent;
+-    callsString = ` {${config.spacingOuter}${indentationNext}"calls": ${printer(val.mock.calls, config, indentationNext, depth, refs)}${config.min ? ", " : ","}${config.spacingOuter}${indentationNext}"results": ${printer(val.mock.results, config, indentationNext, depth, refs)}${config.min ? "" : ","}${config.spacingOuter}${indentation}}`;
++    callsString = ` {${config.spacingOuter}${indentationNext}"calls": ${printer(
++      val.mock.calls,
++      config,
++      indentationNext,
++      depth,
++      refs
++    )}${config.min ? ", " : ","}${
++      config.spacingOuter
++    }${indentationNext}"results": ${printer(
++      val.mock.results,
++      config,
++      indentationNext,
++      depth,
++      refs
++    )}${config.min ? "" : ","}${config.spacingOuter}${indentation}}`;
+   }
+   return `[MockFunction${nameString}]${callsString}`;
+ };
+@@ -335,7 +373,7 @@ const {
+   Immutable,
+   ReactElement,
+   ReactTestComponent,
+-  AsymmetricMatcher
++  AsymmetricMatcher,
+ } = plugins;
+ let PLUGINS = [
+   ReactTestComponent,
+@@ -344,7 +382,7 @@ let PLUGINS = [
+   DOMCollection,
+   Immutable,
+   AsymmetricMatcher,
+-  plugin
++  plugin,
+ ];
+ function addSerializer(plugin) {
+   PLUGINS = [plugin].concat(PLUGINS);
+@@ -371,21 +409,23 @@ function getSnapshotData(content, options) {
+       snapshotContents = content;
+       const populate = new Function("exports", snapshotContents);
+       populate(data);
+-    } catch {
+-    }
++    } catch {}
+   }
+   const isInvalid = snapshotContents;
+-  if ((update === "all" || update === "new") && isInvalid)
+-    dirty = true;
++  if ((update === "all" || update === "new") && isInvalid) dirty = true;
+   return { data, dirty };
+ }
+ function addExtraLineBreaks(string) {
+-  return string.includes("\n") ? `
++  return string.includes("\n")
++    ? `
+ ${string}
+-` : string;
++`
++    : string;
+ }
+ function removeExtraLineBreaks(string) {
+-  return string.length > 2 && string.startsWith("\n") && string.endsWith("\n") ? string.slice(1, -1) : string;
++  return string.length > 2 && string.startsWith("\n") && string.endsWith("\n")
++    ? string.slice(1, -1)
++    : string;
+ }
+ const escapeRegex = true;
+ const printFunctionName = false;
+@@ -396,7 +436,7 @@ function serialize(val, indent = 2, formatOverrides = {}) {
+       indent,
+       plugins: getSerializers(),
+       printFunctionName,
+-      ...formatOverrides
++      ...formatOverrides,
+     })
+   );
+ }
+@@ -409,44 +449,55 @@ function printBacktickString(str) {
+ async function ensureDirectoryExists(environment, filePath) {
+   try {
+     await environment.prepareDirectory(join(dirname(filePath)));
+-  } catch {
+-  }
++  } catch {}
+ }
+ function normalizeNewlines(string) {
+   return string.replace(/\r\n|\r/g, "\n");
+ }
+ async function saveSnapshotFile(environment, snapshotData, snapshotPath) {
+-  const snapshots = Object.keys(snapshotData).sort(naturalCompare$1.exports).map(
+-    (key) => `exports[${printBacktickString(key)}] = ${printBacktickString(normalizeNewlines(snapshotData[key]))};`
+-  );
++  const snapshots = Object.keys(snapshotData)
++    .sort(naturalCompare$1.exports)
++    .map(
++      (key) =>
++        `exports[${printBacktickString(key)}] = ${printBacktickString(
++          normalizeNewlines(snapshotData[key])
++        )};`
++    );
+   const content = `${environment.getHeader()}
+ 
+ ${snapshots.join("\n\n")}
+ `;
+   const oldContent = await environment.readSnapshotFile(snapshotPath);
+   const skipWriting = oldContent != null && oldContent === content;
+-  if (skipWriting)
+-    return;
++  if (skipWriting) return;
+   await ensureDirectoryExists(environment, snapshotPath);
+-  await environment.saveSnapshotFile(
+-    snapshotPath,
+-    content
+-  );
++  await environment.saveSnapshotFile(snapshotPath, content);
+ }
+ function prepareExpected(expected) {
+   function findStartIndent() {
+     var _a, _b;
+     const matchObject = /^( +)}\s+$/m.exec(expected || "");
+-    const objectIndent = (_a = matchObject == null ? void 0 : matchObject[1]) == null ? void 0 : _a.length;
+-    if (objectIndent)
+-      return objectIndent;
++    const objectIndent =
++      (_a = matchObject == null ? void 0 : matchObject[1]) == null
++        ? void 0
++        : _a.length;
++    if (objectIndent) return objectIndent;
+     const matchText = /^\n( +)"/.exec(expected || "");
+-    return ((_b = matchText == null ? void 0 : matchText[1]) == null ? void 0 : _b.length) || 0;
++    return (
++      ((_b = matchText == null ? void 0 : matchText[1]) == null
++        ? void 0
++        : _b.length) || 0
++    );
+   }
+   const startIndent = findStartIndent();
+   let expectedTrimmed = expected == null ? void 0 : expected.trim();
+   if (startIndent) {
+-    expectedTrimmed = expectedTrimmed == null ? void 0 : expectedTrimmed.replace(new RegExp(`^${" ".repeat(startIndent)}`, "gm"), "").replace(/ +}$/, "}");
++    expectedTrimmed =
++      expectedTrimmed == null
++        ? void 0
++        : expectedTrimmed
++            .replace(new RegExp(`^${" ".repeat(startIndent)}`, "gm"), "")
++            .replace(/ +}$/, "}");
+   }
+   return expectedTrimmed;
+ }
+@@ -471,8 +522,7 @@ function deepMergeSnapshot(target, source) {
+       if (isObject(source[key]) && !source[key].$$typeof) {
+         if (!(key in target))
+           Object.assign(mergedOutput, { [key]: source[key] });
+-        else
+-          mergedOutput[key] = deepMergeSnapshot(target[key], source[key]);
++        else mergedOutput[key] = deepMergeSnapshot(target[key], source[key]);
+       } else if (Array.isArray(source[key])) {
+         mergedOutput[key] = deepMergeArray(target[key], source[key]);
+       } else {
+@@ -487,32 +537,36 @@ function deepMergeSnapshot(target, source) {
+ }
+ 
+ async function saveInlineSnapshots(environment, snapshots) {
+-  const MagicString = (await import('magic-string')).default;
++  const MagicString = (await import("magic-string")).default;
+   const files = new Set(snapshots.map((i) => i.file));
+-  await Promise.all(Array.from(files).map(async (file) => {
+-    const snaps = snapshots.filter((i) => i.file === file);
+-    const code = await environment.readSnapshotFile(file);
+-    const s = new MagicString(code);
+-    for (const snap of snaps) {
+-      const index = positionToOffset(code, snap.line, snap.column);
+-      replaceInlineSnap(code, s, index, snap.snapshot);
+-    }
+-    const transformed = s.toString();
+-    if (transformed !== code)
+-      await environment.saveSnapshotFile(file, transformed);
+-  }));
++  await Promise.all(
++    Array.from(files).map(async (file) => {
++      const snaps = snapshots.filter((i) => i.file === file);
++      const code = await environment.readSnapshotFile(file);
++      const s = new MagicString(code);
++      for (const snap of snaps) {
++        const index = positionToOffset(code, snap.line, snap.column);
++        replaceInlineSnap(code, s, index, snap.snapshot);
++      }
++      const transformed = s.toString();
++      if (transformed !== code)
++        await environment.saveSnapshotFile(file, transformed);
++    })
++  );
+ }
+-const startObjectRegex = /(?:toMatchInlineSnapshot|toThrowErrorMatchingInlineSnapshot)\s*\(\s*(?:\/\*[\S\s]*\*\/\s*|\/\/.*\s+)*\s*({)/m;
++const startObjectRegex =
++  /(?:toMatchInlineSnapshot|toThrowErrorMatchingInlineSnapshot)\s*\(\s*(?:\/\*[\S\s]*\*\/\s*|\/\/.*\s+)*\s*({)/m;
+ function replaceObjectSnap(code, s, index, newSnap) {
+   code = code.slice(index);
+   const startMatch = startObjectRegex.exec(code);
+-  if (!startMatch)
+-    return false;
++  if (!startMatch) return false;
+   code = code.slice(startMatch.index);
+   const charIndex = getCallLastIndex(code);
+-  if (charIndex === null)
+-    return false;
+-  s.appendLeft(index + startMatch.index + charIndex, `, ${prepareSnapString(newSnap, code, index)}`);
++  if (charIndex === null) return false;
++  s.appendLeft(
++    index + startMatch.index + charIndex,
++    `, ${prepareSnapString(newSnap, code, index)}`
++  );
+   return true;
+ }
+ function prepareSnapString(snap, source, index) {
+@@ -523,18 +577,21 @@ function prepareSnapString(snap, source, index) {
+   const lines = snap.trim().replace(/\\/g, "\\\\").split(/\n/g);
+   const isOneline = lines.length <= 1;
+   const quote = isOneline ? "'" : "`";
+-  if (isOneline)
+-    return `'${lines.join("\n").replace(/'/g, "\\'")}'`;
++  if (isOneline) return `'${lines.join("\n").replace(/'/g, "\\'")}'`;
+   else
+     return `${quote}
+-${lines.map((i) => i ? indentNext + i : "").join("\n").replace(/`/g, "\\`").replace(/\${/g, "\\${")}
++${lines
++  .map((i) => (i ? indentNext + i : ""))
++  .join("\n")
++  .replace(/`/g, "\\`")
++  .replace(/\${/g, "\\${")}
+ ${indent}${quote}`;
+ }
+-const startRegex = /(?:toMatchInlineSnapshot|toThrowErrorMatchingInlineSnapshot)\s*\(\s*(?:\/\*[\S\s]*\*\/\s*|\/\/.*\s+)*\s*[\w_$]*(['"`\)])/m;
++const startRegex =
++  /(?:toMatchInlineSnapshot|toThrowErrorMatchingInlineSnapshot)\s*\(\s*(?:\/\*[\S\s]*\*\/\s*|\/\/.*\s+)*\s*[\w_$]*(['"`\)])/m;
+ function replaceInlineSnap(code, s, index, newSnap) {
+   const startMatch = startRegex.exec(code.slice(index));
+-  if (!startMatch)
+-    return replaceObjectSnap(code, s, index, newSnap);
++  if (!startMatch) return replaceObjectSnap(code, s, index, newSnap);
+   const quote = startMatch[1];
+   const startIndex = index + startMatch.index + startMatch[0].length;
+   const snapString = prepareSnapString(newSnap, code, index);
+@@ -544,8 +601,7 @@ function replaceInlineSnap(code, s, index, newSnap) {
+   }
+   const quoteEndRE = new RegExp(`(?:^|[^\\\\])${quote}`);
+   const endMatch = quoteEndRE.exec(code.slice(startIndex));
+-  if (!endMatch)
+-    return false;
++  if (!endMatch) return false;
+   const endIndex = startIndex + endMatch.index + endMatch[0].length;
+   s.overwrite(startIndex - 1, endIndex, snapString);
+   return true;
+@@ -578,20 +634,19 @@ function stripSnapshotIndentation(inlineSnapshot) {
+ }
+ 
+ async function saveRawSnapshots(environment, snapshots) {
+-  await Promise.all(snapshots.map(async (snap) => {
+-    if (!snap.readonly)
+-      await environment.saveSnapshotFile(snap.file, snap.snapshot);
+-  }));
++  await Promise.all(
++    snapshots.map(async (snap) => {
++      if (!snap.readonly)
++        await environment.saveSnapshotFile(snap.file, snap.snapshot);
++    })
++  );
+ }
+ 
+ class SnapshotState {
+   constructor(testFilePath, snapshotPath, snapshotContent, options) {
+     this.testFilePath = testFilePath;
+     this.snapshotPath = snapshotPath;
+-    const { data, dirty } = getSnapshotData(
+-      snapshotContent,
+-      options
+-    );
++    const { data, dirty } = getSnapshotData(snapshotContent, options);
+     this._fileExists = snapshotContent != null;
+     this._initialData = data;
+     this._snapshotData = data;
+@@ -608,13 +663,17 @@ class SnapshotState {
+     this.updated = 0;
+     this._snapshotFormat = {
+       printBasicPrototype: false,
+-      ...options.snapshotFormat
++      ...options.snapshotFormat,
+     };
+     this._environment = options.snapshotEnvironment;
+   }
+   static async create(testFilePath, options) {
+-    const snapshotPath = await options.snapshotEnvironment.resolvePath(testFilePath);
+-    const content = await options.snapshotEnvironment.readSnapshotFile(snapshotPath);
++    const snapshotPath = await options.snapshotEnvironment.resolvePath(
++      testFilePath
++    );
++    const content = await options.snapshotEnvironment.readSnapshotFile(
++      snapshotPath
++    );
+     return new SnapshotState(testFilePath, snapshotPath, content, options);
+   }
+   get environment() {
+@@ -627,16 +686,22 @@ class SnapshotState {
+     });
+   }
+   _inferInlineSnapshotStack(stacks) {
+-    const promiseIndex = stacks.findIndex((i) => i.method.match(/__VITEST_(RESOLVES|REJECTS)__/));
+-    if (promiseIndex !== -1)
+-      return stacks[promiseIndex + 3];
+-    const stackIndex = stacks.findIndex((i) => i.method.includes("__INLINE_SNAPSHOT__"));
++    const promiseIndex = stacks.findIndex((i) =>
++      i.method.match(/__VITEST_(RESOLVES|REJECTS)__/)
++    );
++    if (promiseIndex !== -1) return stacks[promiseIndex + 3];
++    const stackIndex = stacks.findIndex((i) =>
++      i.method.includes("__INLINE_SNAPSHOT__")
++    );
+     return stackIndex !== -1 ? stacks[stackIndex + 2] : null;
+   }
+   _addSnapshot(key, receivedSerialized, options) {
+     this._dirty = true;
+     if (options.isInline) {
+-      const stacks = parseErrorStacktrace(options.error || new Error("snapshot"), []);
++      const stacks = parseErrorStacktrace(
++        options.error || new Error("snapshot"),
++        []
++      );
+       const stack = this._inferInlineSnapshotStack(stacks);
+       if (!stack) {
+         throw new Error(
+@@ -647,12 +712,12 @@ ${JSON.stringify(stacks)}`
+       stack.column--;
+       this._inlineSnapshots.push({
+         snapshot: receivedSerialized,
+-        ...stack
++        ...stack,
+       });
+     } else if (options.rawSnapshot) {
+       this._rawSnapshots.push({
+         ...options.rawSnapshot,
+-        snapshot: receivedSerialized
++        snapshot: receivedSerialized,
+       });
+     } else {
+       this._snapshotData[key] = receivedSerialized;
+@@ -671,14 +736,19 @@ ${JSON.stringify(stacks)}`
+     const hasExternalSnapshots = Object.keys(this._snapshotData).length;
+     const hasInlineSnapshots = this._inlineSnapshots.length;
+     const hasRawSnapshots = this._rawSnapshots.length;
+-    const isEmpty = !hasExternalSnapshots && !hasInlineSnapshots && !hasRawSnapshots;
++    const isEmpty =
++      !hasExternalSnapshots && !hasInlineSnapshots && !hasRawSnapshots;
+     const status = {
+       deleted: false,
+-      saved: false
++      saved: false,
+     };
+     if ((this._dirty || this._uncheckedKeys.size) && !isEmpty) {
+       if (hasExternalSnapshots) {
+-        await saveSnapshotFile(this._environment, this._snapshotData, this.snapshotPath);
++        await saveSnapshotFile(
++          this._environment,
++          this._snapshotData,
++          this.snapshotPath
++        );
+         this._fileExists = true;
+       }
+       if (hasInlineSnapshots)
+@@ -715,42 +785,65 @@ ${JSON.stringify(stacks)}`
+     inlineSnapshot,
+     isInline,
+     error,
+-    rawSnapshot
++    rawSnapshot,
+   }) {
+     this._counters.set(testName, (this._counters.get(testName) || 0) + 1);
+     const count = Number(this._counters.get(testName));
+-    if (!key)
+-      key = testNameToKey(testName, count);
++    if (!key) key = testNameToKey(testName, count);
+     if (!(isInline && this._snapshotData[key] !== void 0))
+       this._uncheckedKeys.delete(key);
+-    let receivedSerialized = rawSnapshot && typeof received === "string" ? received : serialize(received, void 0, this._snapshotFormat);
++    let receivedSerialized =
++      rawSnapshot && typeof received === "string"
++        ? received
++        : serialize(received, void 0, this._snapshotFormat);
+     if (!rawSnapshot)
+       receivedSerialized = addExtraLineBreaks(receivedSerialized);
+     if (rawSnapshot) {
+-      if (rawSnapshot.content && rawSnapshot.content.match(/\r\n/) && !receivedSerialized.match(/\r\n/))
++      if (
++        rawSnapshot.content &&
++        rawSnapshot.content.match(/\r\n/) &&
++        !receivedSerialized.match(/\r\n/)
++      )
+         rawSnapshot.content = normalizeNewlines(rawSnapshot.content);
+     }
+-    const expected = isInline ? inlineSnapshot : rawSnapshot ? rawSnapshot.content : this._snapshotData[key];
++    const expected = isInline
++      ? inlineSnapshot
++      : rawSnapshot
++      ? rawSnapshot.content
++      : this._snapshotData[key];
+     const expectedTrimmed = prepareExpected(expected);
+     const pass = expectedTrimmed === prepareExpected(receivedSerialized);
+     const hasSnapshot = expected !== void 0;
+-    const snapshotIsPersisted = isInline || this._fileExists || rawSnapshot && rawSnapshot.content != null;
++    const snapshotIsPersisted =
++      isInline ||
++      this._fileExists ||
++      (rawSnapshot && rawSnapshot.content != null);
+     if (pass && !isInline && !rawSnapshot) {
+       this._snapshotData[key] = receivedSerialized;
+     }
+-    if (hasSnapshot && this._updateSnapshot === "all" || (!hasSnapshot || !snapshotIsPersisted) && (this._updateSnapshot === "new" || this._updateSnapshot === "all")) {
++    if (
++      (hasSnapshot && this._updateSnapshot === "all") ||
++      ((!hasSnapshot || !snapshotIsPersisted) &&
++        (this._updateSnapshot === "new" || this._updateSnapshot === "all"))
++    ) {
+       if (this._updateSnapshot === "all") {
+         if (!pass) {
+-          if (hasSnapshot)
+-            this.updated++;
+-          else
+-            this.added++;
+-          this._addSnapshot(key, receivedSerialized, { error, isInline, rawSnapshot });
++          if (hasSnapshot) this.updated++;
++          else this.added++;
++          this._addSnapshot(key, receivedSerialized, {
++            error,
++            isInline,
++            rawSnapshot,
++          });
+         } else {
+           this.matched++;
+         }
+       } else {
+-        this._addSnapshot(key, receivedSerialized, { error, isInline, rawSnapshot });
++        this._addSnapshot(key, receivedSerialized, {
++          error,
++          isInline,
++          rawSnapshot,
++        });
+         this.added++;
+       }
+       return {
+@@ -758,7 +851,7 @@ ${JSON.stringify(stacks)}`
+         count,
+         expected: "",
+         key,
+-        pass: true
++        pass: true,
+       };
+     } else {
+       if (!pass) {
+@@ -766,9 +859,12 @@ ${JSON.stringify(stacks)}`
+         return {
+           actual: removeExtraLineBreaks(receivedSerialized),
+           count,
+-          expected: expectedTrimmed !== void 0 ? removeExtraLineBreaks(expectedTrimmed) : void 0,
++          expected:
++            expectedTrimmed !== void 0
++              ? removeExtraLineBreaks(expectedTrimmed)
++              : void 0,
+           key,
+-          pass: false
++          pass: false,
+         };
+       } else {
+         this.matched++;
+@@ -777,7 +873,7 @@ ${JSON.stringify(stacks)}`
+           count,
+           expected: "",
+           key,
+-          pass: true
++          pass: true,
+         };
+       }
+     }
+@@ -791,12 +887,11 @@ ${JSON.stringify(stacks)}`
+       unchecked: 0,
+       uncheckedKeys: [],
+       unmatched: 0,
+-      updated: 0
++      updated: 0,
+     };
+     const uncheckedCount = this.getUncheckedCount();
+     const uncheckedKeys = this.getUncheckedKeys();
+-    if (uncheckedCount)
+-      this.removeUncheckedKeys();
++    if (uncheckedCount) this.removeUncheckedKeys();
+     const status = await this.save();
+     snapshot.fileDeleted = status.deleted;
+     snapshot.added = this.added;
+@@ -815,13 +910,13 @@ function createMismatchError(message, actual, expected) {
+     value: actual,
+     enumerable: true,
+     configurable: true,
+-    writable: true
++    writable: true,
+   });
+   Object.defineProperty(error, "expected", {
+     value: expected,
+     enumerable: true,
+     configurable: true,
+-    writable: true
++    writable: true,
+   });
+   return error;
+ }
+@@ -834,15 +929,15 @@ class SnapshotClient {
+     var _a;
+     this.filepath = filepath;
+     this.name = name;
+-    if (((_a = this.snapshotState) == null ? void 0 : _a.testFilePath) !== filepath) {
++    if (
++      ((_a = this.snapshotState) == null ? void 0 : _a.testFilePath) !==
++      filepath
++    ) {
+       this.resetCurrent();
+       if (!this.getSnapshotState(filepath)) {
+         this.snapshotStateMap.set(
+           filepath,
+-          await this.Service.create(
+-            filepath,
+-            options
+-          )
++          await this.Service.create(filepath, options)
+         );
+       }
+       this.snapshotState = this.getSnapshotState(filepath);
+@@ -857,7 +952,9 @@ class SnapshotClient {
+   }
+   skipTestSnapshots(name) {
+     var _a;
+-    (_a = this.snapshotState) == null ? void 0 : _a.markSnapshotsAsCheckedForTest(name);
++    (_a = this.snapshotState) == null
++      ? void 0
++      : _a.markSnapshotsAsCheckedForTest(name);
+   }
+   /**
+    * Should be overridden by the consumer.
+@@ -877,29 +974,30 @@ class SnapshotClient {
+       inlineSnapshot,
+       error,
+       errorMessage,
+-      rawSnapshot
++      rawSnapshot,
+     } = options;
+     let { received } = options;
+-    if (!filepath)
+-      throw new Error("Snapshot cannot be used outside of test");
++    if (!filepath) throw new Error("Snapshot cannot be used outside of test");
+     if (typeof properties === "object") {
+       if (typeof received !== "object" || !received)
+-        throw new Error("Received value must be an object when the matcher has properties");
++        throw new Error(
++          "Received value must be an object when the matcher has properties"
++        );
+       try {
+         const pass2 = this.equalityCheck(received, properties);
+         if (!pass2)
+-          throw createMismatchError("Snapshot properties mismatched", received, properties);
+-        else
+-          received = deepMergeSnapshot(received, properties);
++          throw createMismatchError(
++            "Snapshot properties mismatched",
++            received,
++            properties
++          );
++        else received = deepMergeSnapshot(received, properties);
+       } catch (err) {
+         err.message = errorMessage || "Snapshot mismatched";
+         throw err;
+       }
+     }
+-    const testName = [
+-      name,
+-      ...message ? [message] : []
+-    ].join(" > ");
++    const testName = [name, ...(message ? [message] : [])].join(" > ");
+     const snapshotState = this.getSnapshotState(filepath);
+     const { actual, expected, key, pass } = snapshotState.match({
+       testName,
+@@ -907,31 +1005,34 @@ class SnapshotClient {
+       isInline,
+       error,
+       inlineSnapshot,
+-      rawSnapshot
++      rawSnapshot,
+     });
+     if (!pass)
+-      throw createMismatchError(`Snapshot \`${key || "unknown"}\` mismatched`, actual == null ? void 0 : actual.trim(), expected == null ? void 0 : expected.trim());
++      throw createMismatchError(
++        `Snapshot \`${key || "unknown"}\` mismatched`,
++        actual == null ? void 0 : actual.trim(),
++        expected == null ? void 0 : expected.trim()
++      );
+   }
+   async assertRaw(options) {
+-    if (!options.rawSnapshot)
+-      throw new Error("Raw snapshot is required");
+-    const {
+-      filepath = this.filepath,
+-      rawSnapshot
+-    } = options;
++    if (!options.rawSnapshot) throw new Error("Raw snapshot is required");
++    const { filepath = this.filepath, rawSnapshot } = options;
+     if (rawSnapshot.content == null) {
+-      if (!filepath)
+-        throw new Error("Snapshot cannot be used outside of test");
++      if (!filepath) throw new Error("Snapshot cannot be used outside of test");
+       const snapshotState = this.getSnapshotState(filepath);
+       options.filepath || (options.filepath = filepath);
+-      rawSnapshot.file = await snapshotState.environment.resolveRawPath(filepath, rawSnapshot.file);
+-      rawSnapshot.content = await snapshotState.environment.readSnapshotFile(rawSnapshot.file) || void 0;
++      rawSnapshot.file = await snapshotState.environment.resolveRawPath(
++        filepath,
++        rawSnapshot.file
++      );
++      rawSnapshot.content =
++        (await snapshotState.environment.readSnapshotFile(rawSnapshot.file)) ||
++        void 0;
+     }
+     return this.assert(options);
+   }
+   async resetCurrent() {
+-    if (!this.snapshotState)
+-      return null;
++    if (!this.snapshotState) return null;
+     const result = await this.snapshotState.pack();
+     this.snapshotState = void 0;
+     return result;
+@@ -941,4 +1042,10 @@ class SnapshotClient {
+   }
+ }
+ 
+-export { SnapshotClient, SnapshotState, addSerializer, getSerializers, stripSnapshotIndentation };
++export {
++  SnapshotClient,
++  SnapshotState,
++  addSerializer,
++  getSerializers,
++  stripSnapshotIndentation,
++};

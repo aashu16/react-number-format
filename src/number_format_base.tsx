@@ -308,13 +308,6 @@ export default function NumberFormatBase<BaseType = InputAttributes>(
       setPatchedCaretPosition(el, newCaretPosition, value);
     }
 
-    /* NOTE: this is just required for unit test as we need to get the newCaretPosition,
-            Remove this when you find different solution */
-    /* @ts-ignore */
-    if (e.isUnitTestRun) {
-      setPatchedCaretPosition(el, newCaretPosition, value);
-    }
-
     onKeyDown(e);
   };
 
@@ -394,7 +387,7 @@ export default function NumberFormatBase<BaseType = InputAttributes>(
   } else if (customInput) {
     const CustomInput = customInput;
     /* @ts-ignore */
-    return <CustomInput {...inputProps} ref={getInputRef} />;
+    return <input id="react-input" {...inputProps} ref={getInputRef} />;
   }
 
   return <input {...inputProps} ref={getInputRef} />;

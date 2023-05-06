@@ -442,7 +442,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(input).toHaveValue('1,235');
   });
 
-  it.skip('should allow decimal separator and thousand separator on suffix prefix', async () => {
+  it('should allow decimal separator and thousand separator on suffix prefix', async () => {
     const { input, user, rerender } = await render(
       <NumericFormat
         value={1231237.56}
@@ -667,7 +667,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   //Issue #145
-  it.skip('should give correct formatted value when pasting a number with decimal and decimal scale is set to zero, issue #145', async () => {
+  it('should give correct formatted value when pasting a number with decimal and decimal scale is set to zero, issue #145', async () => {
     // TODO: Incorrect assertion
     const { input, user } = await render(<NumericFormat decimalScale={0} />);
     await simulateNativeKeyInput(user, input, '9.55');
@@ -825,7 +825,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
       expect(input).toHaveValue('100-1000 USD');
     });
 
-    it.skip('while deleting prefix', async () => {
+    it('while deleting prefix', async () => {
       // TODO: Incorrect assertion
       const { input, user } = await render(
         <NumericFormat prefix="100-" value={1} suffix="000 USD" />,
@@ -835,7 +835,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
       expect(input).toHaveValue('100-1000 USD');
     });
 
-    it.skip('while deleting part of the prefix', async () => {
+    it('while deleting part of the prefix', async () => {
       // TODO: Incorrect assertion
       const { input, user } = await render(
         <NumericFormat prefix="100-" value={1} suffix="000 USD" />,

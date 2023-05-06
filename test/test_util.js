@@ -1,10 +1,14 @@
 // @ts-check
-import { expect } from 'vitest';
+import { expect, afterEach } from 'vitest';
 import matchers from '@testing-library/jest-dom/matchers';
 import userEvent from '@testing-library/user-event';
-import { render as testRender, fireEvent } from '@testing-library/react';
+import { cleanup, render as testRender, fireEvent } from '@testing-library/react';
 
 expect.extend(matchers);
+
+afterEach(() => {
+  cleanup();
+});
 
 export function getCustomEvent(value, selectionStart, selectionEnd) {
   return { target: { value } };
